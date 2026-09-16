@@ -1,5 +1,9 @@
 fastapi
-uvicorn
+uvicorn[standard]
+opencv-python==5.0.0.93
 numpy
 pydantic
+pydantic-settings
 python-multipart
+pytest
+httpx
