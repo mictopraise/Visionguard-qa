@@ -78,11 +78,44 @@ Evaluation will measure:
 - final QA disposition accuracy
 - processing time
 
+## Local Development
+
+```bash
+python -m venv .venv
+# Windows PowerShell
+.venv\Scripts\Activate.ps1
+pip install -r requirements.txt
+uvicorn app.main:app --reload
+```
+
+Open `http://127.0.0.1:8000/docs` for the interactive API.
+
+Run tests with:
+
+```bash
+pytest
+```
+
+The `/health` endpoint reports the installed OpenCV version. The current foundation intentionally asserts OpenCV 5.x.
+
 ## Status
 
-Competition planning and architecture phase.
+**Milestone 1 — Foundation: IN PROGRESS**
 
-Implementation has not yet started.
+Implemented:
+- FastAPI application shell
+- OpenCV 5 dependency
+- health/version endpoint
+- Video A / Video B upload ingestion
+- OpenCV metadata probing
+- foundational data models
+- Docker deployment scaffold
+- first automated test
+
+Next:
+- frame normalization and alignment
+- controlled defect generator
+- frozen/repeated-frame detector
 
 ## Competition
 
