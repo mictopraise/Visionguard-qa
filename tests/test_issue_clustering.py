@@ -26,7 +26,7 @@ def test_clean_pair_passes() -> None:
     assert verdict["action"] == "PASS"
 
 
-def test_confirmed_freeze_produces_fail_and_human_review() -> None:
+def test_confirmed_freeze_without_pairwise_degradation_requests_recheck() -> None:
     issues = [
         {"type": "freeze", "start_time": 1.0, "end_time": 2.2, "confidence": 0.999, "details": {}}
     ]
@@ -35,6 +35,6 @@ def test_confirmed_freeze_produces_fail_and_human_review() -> None:
     result_b = {"issues": []}
 
     verdict = _final_verdict(result_a, result_b)
-    assert verdict["status"] == "FAIL"
+    assert verdict["status"] == "RECHECK"
     assert verdict["action"] == "HUMAN_REVIEW"
-    assert "Video A" in verdict["summary"]
+    assert "pairwise" in verdict["summary"].lower()
