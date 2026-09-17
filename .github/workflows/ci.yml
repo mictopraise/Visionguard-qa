@@ -36,10 +36,13 @@ jobs:
       - name: Run freeze benchmark
         run: python -m benchmark.run_freeze_benchmark
 
-      - name: Upload benchmark report
+      - name: Run motion benchmark
+        run: python -m benchmark.run_motion_benchmark
+
+      - name: Upload benchmark reports
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: freeze-baseline-report
-          path: benchmark/results/freeze_baseline/
+          name: visionguard-baseline-reports
+          path: benchmark/results/
           if-no-files-found: warn
