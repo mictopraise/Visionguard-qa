@@ -12,7 +12,7 @@
       <div>
         <p class="eyebrow">VISIONGUARD QA</p>
         <h1>Compare videos. Find visual failures. Review only what matters.</h1>
-        <p class="sub">OpenCV-powered first-pass QA for freezes, motion discontinuities, flicker, and scene changes.</p>
+        <p class="sub">OpenCV-powered first-pass QA with second-pass confirmation for freezes, motion discontinuities, flicker, and scene changes.</p>
       </div>
     </header>
 
@@ -46,6 +46,10 @@
           <strong id="disposition" class="disposition">—</strong>
         </article>
         <article class="panel summary-card">
+          <span class="label">Confirmed issues</span>
+          <strong id="confirmed-count">0</strong>
+        </article>
+        <article class="panel summary-card">
           <span class="label">Grouped issues</span>
           <strong id="issue-count">0</strong>
         </article>
@@ -69,8 +73,18 @@
       <section class="panel">
         <div class="section-head">
           <div>
+            <p class="eyebrow">AGENT TRACE</p>
+            <h2>How suspected issues were handled</h2>
+          </div>
+        </div>
+        <div id="agent-trace" class="timeline"></div>
+      </section>
+
+      <section class="panel">
+        <div class="section-head">
+          <div>
             <p class="eyebrow">TIMELINE</p>
-            <h2>Grouped events</h2>
+            <h2>Reviewable events</h2>
           </div>
         </div>
         <div id="timeline" class="timeline"></div>
