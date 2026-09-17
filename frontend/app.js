@@ -4,6 +4,7 @@ const statusEl = document.getElementById('status');
 const resultsEl = document.getElementById('results');
 const cardsEl = document.getElementById('issue-cards');
 const timelineEl = document.getElementById('timeline');
+const traceEl = document.getElementById('agent-trace');
 
 for (const [inputId, labelId] of [['video-a','video-a-name'],['video-b','video-b-name']]) {
   document.getElementById(inputId).addEventListener('change', (event) => {
@@ -23,6 +24,7 @@ function renderResults(payload) {
   const analysis = payload.evidence?.[0] || {};
   const cards = analysis.evidence_cards || [];
   const timeline = analysis.timeline || [];
+  const trace = analysis.agent_trace || [];
   const action = analysis.disposition || 'UNKNOWN';
   const verdict = analysis.final_verdict || {status: action, summary: ''};
 
@@ -32,14 +34,27 @@ function renderResults(payload) {
 
   document.getElementById('disposition').textContent = action;
   document.getElementById('disposition').className = `disposition ${action.toLowerCase()}`;
+  document.getElementById('confirmed-count').textContent = analysis.total_confirmed_issues ?? 0;
   document.getElementById('issue-count').textContent = analysis.total_issues ?? cards.length;
   document.getElementById('raw-event-count').textContent = analysis.total_raw_events ?? analysis.total_issues ?? cards.length;
   document.getElementById('job-id').textContent = payload.job_id || '—';
   document.getElementById('verdict-summary').textContent = verdict.summary || 'No summary available.';
 
+  traceEl.innerHTML = '';
+  if (!trace.length) {
+    traceEl.innerHTML = '<p class="empty">No second-pass actions were required.</p>';
+  } else {
+    for (const step of trace) {
+      const node = document.createElement('div');
+      node.className = 'timeline-item';
+      node.textContent = `Video ${step.video} · ${step.type.replaceAll('_',' ')} · ${formatTime(step.start_time)}–${formatTime(step.end_time)} · ${step.result.toUpperCase()} — ${step.reason}`;
+      traceEl.appendChild(node);
+    }
+  }
+
   timelineEl.innerHTML = '';
   if (!timeline.length) {
-    timelineEl.innerHTML = '<p class="empty">No significant visual anomalies detected.</p>';
+    timelineEl.innerHTML = '<p class="empty">No reviewable visual anomalies detected.</p>';
   } else {
     for (const item of timeline) {
       const node = document.createElement('div');
@@ -90,7 +105,7 @@ form.addEventListener('submit', async (event) => {
 
   button.disabled = true;
   button.textContent = 'Analyzing…';
-  statusEl.textContent = 'Running OpenCV checks, clustering events, and building representative evidence.';
+  statusEl.textContent = 'Running OpenCV checks, clustering events, and applying second-pass confirmation.';
   resultsEl.classList.add('hidden');
 
   try {
