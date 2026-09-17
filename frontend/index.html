@@ -38,24 +38,39 @@
     <section id="results" class="results hidden">
       <div class="summary-grid">
         <article class="panel summary-card">
-          <span class="label">Disposition</span>
+          <span class="label">Final verdict</span>
+          <strong id="final-verdict" class="disposition">—</strong>
+        </article>
+        <article class="panel summary-card">
+          <span class="label">Recommended action</span>
           <strong id="disposition" class="disposition">—</strong>
         </article>
         <article class="panel summary-card">
-          <span class="label">Issues found</span>
+          <span class="label">Grouped issues</span>
           <strong id="issue-count">0</strong>
         </article>
         <article class="panel summary-card">
-          <span class="label">Job</span>
-          <strong id="job-id" class="mono">—</strong>
+          <span class="label">Raw detector events</span>
+          <strong id="raw-event-count">0</strong>
         </article>
       </div>
 
       <section class="panel">
         <div class="section-head">
           <div>
+            <p class="eyebrow">VERDICT</p>
+            <h2>What VisionGuard concludes</h2>
+          </div>
+        </div>
+        <p id="verdict-summary" class="status"></p>
+        <p class="status">Job: <span id="job-id" class="mono">—</span></p>
+      </section>
+
+      <section class="panel">
+        <div class="section-head">
+          <div>
             <p class="eyebrow">TIMELINE</p>
-            <h2>Detected events</h2>
+            <h2>Grouped events</h2>
           </div>
         </div>
         <div id="timeline" class="timeline"></div>
@@ -65,7 +80,7 @@
         <div class="section-head">
           <div>
             <p class="eyebrow">EVIDENCE</p>
-            <h2>Issue cards</h2>
+            <h2>Representative issue cards</h2>
           </div>
         </div>
         <div id="issue-cards" class="issue-grid"></div>
