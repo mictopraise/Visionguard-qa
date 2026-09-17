@@ -9,6 +9,7 @@ from app.vision.freeze_detection import detect_freeze_windows
 from app.vision.motion_analysis import analyze_motion
 from app.vision.pairwise_comparison import compare_aligned_videos
 from app.vision.scene_change import detect_scene_changes
+from app.vision.spatial_quality import analyze_spatial_quality
 
 
 def _cluster_issues(issues: list[dict], *, merge_gap_seconds: float = 0.45) -> list[dict]:
@@ -94,6 +95,7 @@ def analyze_video_first_pass(video_path: Path, *, video_label: str = "?") -> dic
     _, motion_anomalies = analyze_motion(video_path)
     flicker_windows = detect_flicker_windows(video_path)
     scene_changes = detect_scene_changes(video_path)
+    spatial = analyze_spatial_quality(video_path)
 
     raw_issues: list[dict] = []
     for item in freeze_windows:
@@ -115,6 +117,7 @@ def analyze_video_first_pass(video_path: Path, *, video_label: str = "?") -> dic
         "confirmed_issue_count": sum(1 for item in issues if item.get("confirmation", {}).get("confirmed")),
         "review_issue_count": sum(1 for item in issues if item.get("confirmation", {}).get("status") == "review"),
         "issues": issues,
+        "spatial_quality": spatial,
         "agent_trace": trace,
     }
 
@@ -128,6 +131,7 @@ def compare_first_pass(video_a: Path, video_b: Path, *, evidence_root: Path | No
     total_raw_events = result_a["raw_event_count"] + result_b["raw_event_count"]
     total_confirmed = result_a["confirmed_issue_count"] + result_b["confirmed_issue_count"]
     total_review = result_a["review_issue_count"] + result_b["review_issue_count"]
+    total_spatial_candidates = len(result_a["spatial_quality"].get("candidate_artifacts", [])) + len(result_b["spatial_quality"].get("candidate_artifacts", []))
     verdict = _final_verdict(result_a, result_b, comparative)
 
     comparative_trace = [{
@@ -147,6 +151,7 @@ def compare_first_pass(video_a: Path, video_b: Path, *, evidence_root: Path | No
         "video_b": result_b,
         "comparative_analysis": comparative,
         "comparative_issue_count": len(comparative.get("issues", [])),
+        "spatial_candidate_count": total_spatial_candidates,
         "total_issues": total_issues,
         "total_raw_events": total_raw_events,
         "total_confirmed_issues": total_confirmed,
