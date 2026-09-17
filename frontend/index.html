@@ -12,7 +12,7 @@
       <div>
         <p class="eyebrow">VISIONGUARD QA</p>
         <h1>Score each video. Identify artifacts. Compare overall quality.</h1>
-        <p class="sub">OpenCV-powered temporal and visual QA with synchronized comparison and targeted second-pass confirmation.</p>
+        <p class="sub">OpenCV-powered spatial and temporal QA with synchronized comparison and targeted confirmation.</p>
       </div>
     </header>
 
@@ -31,32 +31,41 @@
       <div class="summary-grid">
         <article class="panel summary-card"><span class="label">Current QA verdict</span><strong id="final-verdict" class="disposition">—</strong></article>
         <article class="panel summary-card"><span class="label">Recommended action</span><strong id="disposition" class="disposition">—</strong></article>
+        <article class="panel summary-card"><span class="label">Spatial candidates</span><strong id="spatial-count">0</strong></article>
         <article class="panel summary-card"><span class="label">Comparative issues</span><strong id="comparative-count">0</strong></article>
-        <article class="panel summary-card"><span class="label">Confirmed independent issues</span><strong id="confirmed-count">0</strong></article>
-        <article class="panel summary-card"><span class="label">Grouped issues</span><strong id="issue-count">0</strong></article>
-        <article class="panel summary-card"><span class="label">Raw detector events</span><strong id="raw-event-count">0</strong></article>
+        <article class="panel summary-card"><span class="label">Confirmed temporal issues</span><strong id="confirmed-count">0</strong></article>
+        <article class="panel summary-card"><span class="label">Raw temporal events</span><strong id="raw-event-count">0</strong></article>
       </div>
 
       <section class="panel">
-        <div class="section-head"><div><p class="eyebrow">CURRENT TEMPORAL QA</p><h2>What VisionGuard concludes</h2></div></div>
-        <p class="status">MOS scoring and spatial artifact labels will appear here after Milestone 6 calibration; this build reports the validated temporal/comparison pipeline only.</p>
+        <div class="section-head"><div><p class="eyebrow">SPATIAL QA — PROVISIONAL</p><h2>Blur and blockiness evidence</h2></div></div>
+        <p class="status">These are measurable candidate artifacts for calibration. They do not yet assign MOS or final Sage artifact labels.</p>
+        <div class="upload-grid">
+          <article><h3>Video A</h3><div id="spatial-a" class="timeline"></div></article>
+          <article><h3>Video B</h3><div id="spatial-b" class="timeline"></div></article>
+        </div>
+      </section>
+
+      <section class="panel">
+        <div class="section-head"><div><p class="eyebrow">CURRENT QA</p><h2>What VisionGuard concludes</h2></div></div>
+        <p class="status">MOS scoring remains withheld until controlled benchmark calibration is complete.</p>
         <p id="verdict-summary" class="status"></p>
         <p id="alignment-summary" class="status"></p>
         <p class="status">Job: <span id="job-id" class="mono">—</span></p>
       </section>
 
       <section class="panel">
-        <div class="section-head"><div><p class="eyebrow">AGENT TRACE</p><h2>How suspected issues were handled</h2></div></div>
+        <div class="section-head"><div><p class="eyebrow">AGENT TRACE</p><h2>How suspected temporal issues were handled</h2></div></div>
         <div id="agent-trace" class="timeline"></div>
       </section>
 
       <section class="panel">
-        <div class="section-head"><div><p class="eyebrow">TIMELINE</p><h2>Reviewable events</h2></div></div>
+        <div class="section-head"><div><p class="eyebrow">TIMELINE</p><h2>Reviewable temporal events</h2></div></div>
         <div id="timeline" class="timeline"></div>
       </section>
 
       <section class="panel">
-        <div class="section-head"><div><p class="eyebrow">EVIDENCE</p><h2>Representative issue cards</h2></div></div>
+        <div class="section-head"><div><p class="eyebrow">EVIDENCE</p><h2>Representative temporal issue cards</h2></div></div>
         <div id="issue-cards" class="issue-grid"></div>
       </section>
     </section>
