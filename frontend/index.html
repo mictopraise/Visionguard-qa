@@ -1,0 +1,77 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>VisionGuard QA</title>
+  <link rel="stylesheet" href="/ui/styles.css" />
+</head>
+<body>
+  <main class="shell">
+    <header class="hero">
+      <div>
+        <p class="eyebrow">VISIONGUARD QA</p>
+        <h1>Compare videos. Find visual failures. Review only what matters.</h1>
+        <p class="sub">OpenCV-powered first-pass QA for freezes, motion discontinuities, flicker, and scene changes.</p>
+      </div>
+    </header>
+
+    <section class="panel upload-panel">
+      <form id="compare-form">
+        <div class="upload-grid">
+          <label class="upload-card">
+            <span>Video A</span>
+            <input id="video-a" name="video_a" type="file" accept="video/*" required />
+            <small id="video-a-name">Choose reference or first video</small>
+          </label>
+          <label class="upload-card">
+            <span>Video B</span>
+            <input id="video-b" name="video_b" type="file" accept="video/*" required />
+            <small id="video-b-name">Choose comparison or second video</small>
+          </label>
+        </div>
+        <button id="analyze-button" type="submit">Analyze videos</button>
+      </form>
+      <p id="status" class="status" aria-live="polite"></p>
+    </section>
+
+    <section id="results" class="results hidden">
+      <div class="summary-grid">
+        <article class="panel summary-card">
+          <span class="label">Disposition</span>
+          <strong id="disposition" class="disposition">—</strong>
+        </article>
+        <article class="panel summary-card">
+          <span class="label">Issues found</span>
+          <strong id="issue-count">0</strong>
+        </article>
+        <article class="panel summary-card">
+          <span class="label">Job</span>
+          <strong id="job-id" class="mono">—</strong>
+        </article>
+      </div>
+
+      <section class="panel">
+        <div class="section-head">
+          <div>
+            <p class="eyebrow">TIMELINE</p>
+            <h2>Detected events</h2>
+          </div>
+        </div>
+        <div id="timeline" class="timeline"></div>
+      </section>
+
+      <section class="panel">
+        <div class="section-head">
+          <div>
+            <p class="eyebrow">EVIDENCE</p>
+            <h2>Issue cards</h2>
+          </div>
+        </div>
+        <div id="issue-cards" class="issue-grid"></div>
+      </section>
+    </section>
+  </main>
+  <script src="/ui/app.js"></script>
+</body>
+</html>
