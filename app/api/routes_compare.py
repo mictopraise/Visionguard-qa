@@ -38,13 +38,14 @@ def create_comparison(
     job_id = uuid4().hex
     job_dir = settings.upload_dir / job_id
     job_dir.mkdir(parents=True, exist_ok=False)
+    evidence_dir = settings.result_dir / job_id / "evidence"
 
     try:
         path_a = _save_upload(video_a, job_dir, "video_a")
         path_b = _save_upload(video_b, job_dir, "video_b")
         meta_a = probe_video(path_a, video_a.filename)
         meta_b = probe_video(path_b, video_b.filename)
-        analysis = compare_first_pass(path_a, path_b)
+        analysis = compare_first_pass(path_a, path_b, evidence_root=evidence_dir)
     except HTTPException:
         shutil.rmtree(job_dir, ignore_errors=True)
         raise
@@ -60,6 +61,7 @@ def create_comparison(
         notes=[
             f"First-pass OpenCV analysis complete. Disposition: {analysis['disposition']}.",
             f"Detected {analysis['total_issues']} issue(s) across both videos.",
+            f"Generated {len(analysis.get('evidence_cards', []))} evidence card(s).",
         ],
         evidence=[analysis],
     )
