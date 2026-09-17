@@ -12,7 +12,7 @@ def run(output_dir: Path = Path("benchmark/results/freeze_baseline")) -> dict:
     output_dir.mkdir(parents=True, exist_ok=True)
 
     clean_path = output_dir / "clean.avi"
-    defect_path = output_dir / "freeze_defect.mp4"
+    defect_path = output_dir / "freeze_defect.avi"
     manifest_path = output_dir / "manifest.jsonl"
 
     create_moving_square_video(clean_path)
@@ -27,7 +27,6 @@ def run(output_dir: Path = Path("benchmark/results/freeze_baseline")) -> dict:
 
     clean_windows = detect_freeze_windows(clean_path)
     defect_windows = detect_freeze_windows(defect_path)
-
     detected = defect_windows[0] if defect_windows else None
 
     result = {
