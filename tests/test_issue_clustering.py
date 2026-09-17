@@ -1,3 +1,4 @@
+from app.agent.confirmation import apply_second_pass
 from app.services.first_pass import _cluster_issues, _final_verdict
 
 
@@ -25,12 +26,12 @@ def test_clean_pair_passes() -> None:
     assert verdict["action"] == "PASS"
 
 
-def test_major_issue_produces_fail_and_human_review() -> None:
-    result_a = {
-        "issues": [
-            {"type": "freeze", "start_time": 1.0, "end_time": 2.2, "confidence": 0.99, "details": {}}
-        ]
-    }
+def test_confirmed_freeze_produces_fail_and_human_review() -> None:
+    issues = [
+        {"type": "freeze", "start_time": 1.0, "end_time": 2.2, "confidence": 0.999, "details": {}}
+    ]
+    reviewed, _ = apply_second_pass(issues, video_label="A")
+    result_a = {"issues": reviewed}
     result_b = {"issues": []}
 
     verdict = _final_verdict(result_a, result_b)
