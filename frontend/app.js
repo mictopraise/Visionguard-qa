@@ -27,6 +27,8 @@ function renderResults(payload) {
   const trace = analysis.agent_trace || [];
   const action = analysis.disposition || 'UNKNOWN';
   const verdict = analysis.final_verdict || {status: action, summary: ''};
+  const comparative = analysis.comparative_analysis || {};
+  const alignment = comparative.alignment || {};
 
   const verdictEl = document.getElementById('final-verdict');
   verdictEl.textContent = verdict.status || 'UNKNOWN';
@@ -34,15 +36,23 @@ function renderResults(payload) {
 
   document.getElementById('disposition').textContent = action;
   document.getElementById('disposition').className = `disposition ${action.toLowerCase()}`;
+  document.getElementById('comparative-count').textContent = analysis.comparative_issue_count ?? 0;
   document.getElementById('confirmed-count').textContent = analysis.total_confirmed_issues ?? 0;
   document.getElementById('issue-count').textContent = analysis.total_issues ?? cards.length;
   document.getElementById('raw-event-count').textContent = analysis.total_raw_events ?? analysis.total_issues ?? cards.length;
   document.getElementById('job-id').textContent = payload.job_id || '—';
   document.getElementById('verdict-summary').textContent = verdict.summary || 'No summary available.';
 
+  if (comparative.summary) {
+    const score = Number(alignment.score || 0);
+    document.getElementById('alignment-summary').textContent = `${comparative.summary} Alignment score ${(score * 100).toFixed(1)}%.`;
+  } else {
+    document.getElementById('alignment-summary').textContent = 'Pairwise alignment data unavailable.';
+  }
+
   traceEl.innerHTML = '';
   if (!trace.length) {
-    traceEl.innerHTML = '<p class="empty">No second-pass actions were required.</p>';
+    traceEl.innerHTML = '<p class="empty">No second-pass or pairwise actions were required.</p>';
   } else {
     for (const step of trace) {
       const node = document.createElement('div');
@@ -66,7 +76,7 @@ function renderResults(payload) {
 
   cardsEl.innerHTML = '';
   if (!cards.length) {
-    cardsEl.innerHTML = '<p class="empty">PASS — no representative evidence cards were generated.</p>';
+    cardsEl.innerHTML = '<p class="empty">No representative evidence cards were generated.</p>';
   } else {
     for (const card of cards) {
       const article = document.createElement('article');
@@ -105,7 +115,7 @@ form.addEventListener('submit', async (event) => {
 
   button.disabled = true;
   button.textContent = 'Analyzing…';
-  statusEl.textContent = 'Running OpenCV checks, clustering events, and applying second-pass confirmation.';
+  statusEl.textContent = 'Aligning A/B, comparing matched frames, running OpenCV QA, and applying targeted confirmation.';
   resultsEl.classList.add('hidden');
 
   try {
