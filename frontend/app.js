@@ -23,33 +23,41 @@ function renderResults(payload) {
   const analysis = payload.evidence?.[0] || {};
   const cards = analysis.evidence_cards || [];
   const timeline = analysis.timeline || [];
-  const disposition = analysis.disposition || 'UNKNOWN';
+  const action = analysis.disposition || 'UNKNOWN';
+  const verdict = analysis.final_verdict || {status: action, summary: ''};
 
-  document.getElementById('disposition').textContent = disposition;
-  document.getElementById('disposition').className = `disposition ${disposition.toLowerCase()}`;
+  const verdictEl = document.getElementById('final-verdict');
+  verdictEl.textContent = verdict.status || 'UNKNOWN';
+  verdictEl.className = `disposition ${(verdict.status || 'unknown').toLowerCase()}`;
+
+  document.getElementById('disposition').textContent = action;
+  document.getElementById('disposition').className = `disposition ${action.toLowerCase()}`;
   document.getElementById('issue-count').textContent = analysis.total_issues ?? cards.length;
+  document.getElementById('raw-event-count').textContent = analysis.total_raw_events ?? analysis.total_issues ?? cards.length;
   document.getElementById('job-id').textContent = payload.job_id || '—';
+  document.getElementById('verdict-summary').textContent = verdict.summary || 'No summary available.';
 
   timelineEl.innerHTML = '';
   if (!timeline.length) {
-    timelineEl.innerHTML = '<p class="empty">No visual anomalies detected in the first-pass scan.</p>';
+    timelineEl.innerHTML = '<p class="empty">No significant visual anomalies detected.</p>';
   } else {
     for (const item of timeline) {
       const node = document.createElement('div');
       node.className = 'timeline-item';
-      node.textContent = `Video ${item.video} · ${item.type.replaceAll('_',' ')} · ${formatTime(item.start_time)} · ${item.severity}`;
+      node.textContent = `Video ${item.video} · ${item.type.replaceAll('_',' ')} · ${formatTime(item.start_time)}–${formatTime(item.end_time)} · ${item.severity}`;
       timelineEl.appendChild(node);
     }
   }
 
   cardsEl.innerHTML = '';
   if (!cards.length) {
-    cardsEl.innerHTML = '<p class="empty">PASS — no evidence cards were generated.</p>';
+    cardsEl.innerHTML = '<p class="empty">PASS — no representative evidence cards were generated.</p>';
   } else {
     for (const card of cards) {
       const article = document.createElement('article');
       article.className = 'issue-card';
       const image = card.evidence_frames?.[0];
+      const rawCount = card.details?.raw_event_count || 1;
       article.innerHTML = `
         ${image ? `<img src="${image}" alt="Evidence for ${card.issue_id}" loading="lazy" />` : ''}
         <div class="issue-body">
@@ -59,7 +67,7 @@ function renderResults(payload) {
           </div>
           <p class="issue-meta">
             Video ${card.video} · ${formatTime(card.start_time)}–${formatTime(card.end_time)}<br />
-            Confidence ${(Number(card.confidence || 0) * 100).toFixed(1)}%
+            Confidence ${(Number(card.confidence || 0) * 100).toFixed(1)}% · ${rawCount} raw event${rawCount === 1 ? '' : 's'} grouped
           </p>
         </div>`;
       cardsEl.appendChild(article);
@@ -82,7 +90,7 @@ form.addEventListener('submit', async (event) => {
 
   button.disabled = true;
   button.textContent = 'Analyzing…';
-  statusEl.textContent = 'Running OpenCV checks and building evidence. Keep this tab open.';
+  statusEl.textContent = 'Running OpenCV checks, clustering events, and building representative evidence.';
   resultsEl.classList.add('hidden');
 
   try {
