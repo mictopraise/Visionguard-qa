@@ -2,6 +2,7 @@ from __future__ import annotations
 
 from pathlib import Path
 
+from app.evidence.builder import build_evidence_cards, build_timeline
 from app.vision.flicker_detection import detect_flicker_windows
 from app.vision.freeze_detection import detect_freeze_windows
 from app.vision.motion_analysis import analyze_motion
@@ -76,16 +77,40 @@ def analyze_video_first_pass(video_path: Path) -> dict:
     }
 
 
-def compare_first_pass(video_a: Path, video_b: Path) -> dict:
+def compare_first_pass(
+    video_a: Path,
+    video_b: Path,
+    *,
+    evidence_root: Path | None = None,
+) -> dict:
     result_a = analyze_video_first_pass(video_a)
     result_b = analyze_video_first_pass(video_b)
 
     total_issues = result_a["issue_count"] + result_b["issue_count"]
     disposition = "PASS" if total_issues == 0 else "RECHECK"
 
-    return {
+    response = {
         "disposition": disposition,
         "video_a": result_a,
         "video_b": result_b,
         "total_issues": total_issues,
     }
+
+    if evidence_root is not None:
+        cards_a = build_evidence_cards(
+            video_a,
+            result_a["issues"],
+            evidence_root,
+            video_label="A",
+        )
+        cards_b = build_evidence_cards(
+            video_b,
+            result_b["issues"],
+            evidence_root,
+            video_label="B",
+        )
+        cards = cards_a + cards_b
+        response["evidence_cards"] = cards
+        response["timeline"] = build_timeline(cards)
+
+    return response
