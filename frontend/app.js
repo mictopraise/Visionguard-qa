@@ -20,6 +20,29 @@ function formatTime(seconds) {
   return `${mins}:${secs}`;
 }
 
+function renderSpatial(targetId, spatial) {
+  const target = document.getElementById(targetId);
+  const candidates = spatial?.candidate_artifacts || [];
+  const metrics = spatial?.metrics || {};
+  target.innerHTML = '';
+
+  if (!candidates.length) {
+    const node = document.createElement('div');
+    node.className = 'timeline-item';
+    node.textContent = `No blur/blockiness candidate at provisional thresholds · blur=${Number(metrics.median_laplacian_variance || 0).toFixed(1)} · block ratio=${Number(metrics.median_blockiness_ratio || 0).toFixed(2)}`;
+    target.appendChild(node);
+    return;
+  }
+
+  for (const item of candidates) {
+    const node = document.createElement('div');
+    node.className = 'timeline-item';
+    const confidence = (Number(item.confidence || 0) * 100).toFixed(0);
+    node.textContent = `${item.artifact.replaceAll('_',' ')} · CANDIDATE · ${confidence}% · ${item.reason}`;
+    target.appendChild(node);
+  }
+}
+
 function renderResults(payload) {
   const analysis = payload.evidence?.[0] || {};
   const cards = analysis.evidence_cards || [];
@@ -36,12 +59,15 @@ function renderResults(payload) {
 
   document.getElementById('disposition').textContent = action;
   document.getElementById('disposition').className = `disposition ${action.toLowerCase()}`;
+  document.getElementById('spatial-count').textContent = analysis.spatial_candidate_count ?? 0;
   document.getElementById('comparative-count').textContent = analysis.comparative_issue_count ?? 0;
   document.getElementById('confirmed-count').textContent = analysis.total_confirmed_issues ?? 0;
-  document.getElementById('issue-count').textContent = analysis.total_issues ?? cards.length;
-  document.getElementById('raw-event-count').textContent = analysis.total_raw_events ?? analysis.total_issues ?? cards.length;
+  document.getElementById('raw-event-count').textContent = analysis.total_raw_events ?? 0;
   document.getElementById('job-id').textContent = payload.job_id || '—';
   document.getElementById('verdict-summary').textContent = verdict.summary || 'No summary available.';
+
+  renderSpatial('spatial-a', analysis.video_a?.spatial_quality || {});
+  renderSpatial('spatial-b', analysis.video_b?.spatial_quality || {});
 
   if (comparative.summary) {
     const score = Number(alignment.score || 0);
@@ -64,7 +90,7 @@ function renderResults(payload) {
 
   timelineEl.innerHTML = '';
   if (!timeline.length) {
-    timelineEl.innerHTML = '<p class="empty">No reviewable visual anomalies detected.</p>';
+    timelineEl.innerHTML = '<p class="empty">No reviewable temporal anomalies detected.</p>';
   } else {
     for (const item of timeline) {
       const node = document.createElement('div');
@@ -76,7 +102,7 @@ function renderResults(payload) {
 
   cardsEl.innerHTML = '';
   if (!cards.length) {
-    cardsEl.innerHTML = '<p class="empty">No representative evidence cards were generated.</p>';
+    cardsEl.innerHTML = '<p class="empty">No representative temporal evidence cards were generated.</p>';
   } else {
     for (const card of cards) {
       const article = document.createElement('article');
@@ -115,7 +141,7 @@ form.addEventListener('submit', async (event) => {
 
   button.disabled = true;
   button.textContent = 'Analyzing…';
-  statusEl.textContent = 'Aligning A/B, comparing matched frames, running OpenCV QA, and applying targeted confirmation.';
+  statusEl.textContent = 'Running provisional spatial QA, temporal QA, alignment, pairwise comparison, and targeted confirmation.';
   resultsEl.classList.add('hidden');
 
   try {
