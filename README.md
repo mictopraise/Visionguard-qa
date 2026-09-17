@@ -78,19 +78,30 @@ These modules form the **Temporal QA** branch of the broader product.
 
 ## Milestone 6 — Human-Aligned Video Quality Scoring
 
-The next milestone adds the missing **Spatial QA** branch in this order:
+Spatial QA is now underway.
 
-1. independent quality-assessment pipeline per video
-2. blur detector
-3. blockiness detector
-4. oversharpening / ringing detector
-5. oversmoothing / detail-loss detector
-6. color-shift detector
-7. connect temporal QA to playback-quality output
-8. produce artifact labels per video
-9. calibrate MOS scoring on controlled examples
-10. produce pairwise preference consistent with both independent assessments
-11. surface evidence and confidence in the UI
+Implemented in the current Milestone 6 build:
+
+- independent spatial sampling per video
+- blur evidence using Laplacian detail energy
+- blockiness evidence using 8-pixel boundary discontinuity measurements
+- provisional candidate artifact output per video
+- UI display of spatial candidates separately from temporal verdicts
+- synthetic tests for blur sensitivity and block-boundary detection
+
+Important: blur and blockiness thresholds are **provisional calibration thresholds**, not final Sage labels. Candidate artifacts do not yet force MOS scores or final quality verdicts.
+
+Remaining Milestone 6 work:
+
+1. calibrate blur and blockiness on controlled labeled examples
+2. oversharpening / ringing detector
+3. oversmoothing / detail-loss detector
+4. color-shift detector
+5. connect temporal QA to playback-quality output
+6. produce calibrated artifact labels per video
+7. calibrate MOS scoring
+8. produce pairwise preference consistent with both independent assessments
+9. surface final evidence and confidence in the UI
 
 The frozen architecture is documented in `docs/SAGE_ALIGNED_ARCHITECTURE.md`.
 
@@ -158,11 +169,11 @@ pytest
 - targeted second-pass confirmation
 - temporal alignment + pairwise comparison
 
-**Architecture revision: frozen**
+**Architecture revision: frozen and CI-verified**
 
 VisionGuard now follows independent quality evaluation first, synchronized comparison second.
 
-**Next: Milestone 6 — Human-Aligned Video Quality Scoring**
+**Milestone 6: IN PROGRESS — blur + blockiness spatial evidence implemented; calibration pending.**
 
 ## Competition
 
