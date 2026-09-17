@@ -14,6 +14,10 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
 
+      - name: Package repository snapshot
+        run: |
+          zip -r VisionGuard_QA_repo.zip . -x ".git/*" "VisionGuard_QA_repo.zip"
+
       - name: Set up Python
         uses: actions/setup-python@v5
         with:
@@ -46,3 +50,11 @@ jobs:
           name: visionguard-baseline-reports
           path: benchmark/results/
           if-no-files-found: warn
+
+      - name: Upload repository snapshot
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: visionguard-repo-snapshot
+          path: VisionGuard_QA_repo.zip
+          if-no-files-found: error
