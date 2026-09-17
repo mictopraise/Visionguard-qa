@@ -12,23 +12,15 @@
       <div>
         <p class="eyebrow">VISIONGUARD QA</p>
         <h1>Compare videos. Find visual failures. Review only what matters.</h1>
-        <p class="sub">OpenCV-powered first-pass QA with second-pass confirmation for freezes, motion discontinuities, flicker, and scene changes.</p>
+        <p class="sub">OpenCV-powered temporal alignment, pairwise comparison, first-pass QA, and targeted second-pass confirmation.</p>
       </div>
     </header>
 
     <section class="panel upload-panel">
       <form id="compare-form">
         <div class="upload-grid">
-          <label class="upload-card">
-            <span>Video A</span>
-            <input id="video-a" name="video_a" type="file" accept="video/*" required />
-            <small id="video-a-name">Choose reference or first video</small>
-          </label>
-          <label class="upload-card">
-            <span>Video B</span>
-            <input id="video-b" name="video_b" type="file" accept="video/*" required />
-            <small id="video-b-name">Choose comparison or second video</small>
-          </label>
+          <label class="upload-card"><span>Video A</span><input id="video-a" name="video_a" type="file" accept="video/*" required /><small id="video-a-name">Choose reference or first video</small></label>
+          <label class="upload-card"><span>Video B</span><input id="video-b" name="video_b" type="file" accept="video/*" required /><small id="video-b-name">Choose comparison or second video</small></label>
         </div>
         <button id="analyze-button" type="submit">Analyze videos</button>
       </form>
@@ -37,66 +29,33 @@
 
     <section id="results" class="results hidden">
       <div class="summary-grid">
-        <article class="panel summary-card">
-          <span class="label">Final verdict</span>
-          <strong id="final-verdict" class="disposition">—</strong>
-        </article>
-        <article class="panel summary-card">
-          <span class="label">Recommended action</span>
-          <strong id="disposition" class="disposition">—</strong>
-        </article>
-        <article class="panel summary-card">
-          <span class="label">Confirmed issues</span>
-          <strong id="confirmed-count">0</strong>
-        </article>
-        <article class="panel summary-card">
-          <span class="label">Grouped issues</span>
-          <strong id="issue-count">0</strong>
-        </article>
-        <article class="panel summary-card">
-          <span class="label">Raw detector events</span>
-          <strong id="raw-event-count">0</strong>
-        </article>
+        <article class="panel summary-card"><span class="label">Final verdict</span><strong id="final-verdict" class="disposition">—</strong></article>
+        <article class="panel summary-card"><span class="label">Recommended action</span><strong id="disposition" class="disposition">—</strong></article>
+        <article class="panel summary-card"><span class="label">Comparative issues</span><strong id="comparative-count">0</strong></article>
+        <article class="panel summary-card"><span class="label">Confirmed independent issues</span><strong id="confirmed-count">0</strong></article>
+        <article class="panel summary-card"><span class="label">Grouped issues</span><strong id="issue-count">0</strong></article>
+        <article class="panel summary-card"><span class="label">Raw detector events</span><strong id="raw-event-count">0</strong></article>
       </div>
 
       <section class="panel">
-        <div class="section-head">
-          <div>
-            <p class="eyebrow">VERDICT</p>
-            <h2>What VisionGuard concludes</h2>
-          </div>
-        </div>
+        <div class="section-head"><div><p class="eyebrow">VERDICT</p><h2>What VisionGuard concludes</h2></div></div>
         <p id="verdict-summary" class="status"></p>
+        <p id="alignment-summary" class="status"></p>
         <p class="status">Job: <span id="job-id" class="mono">—</span></p>
       </section>
 
       <section class="panel">
-        <div class="section-head">
-          <div>
-            <p class="eyebrow">AGENT TRACE</p>
-            <h2>How suspected issues were handled</h2>
-          </div>
-        </div>
+        <div class="section-head"><div><p class="eyebrow">AGENT TRACE</p><h2>How suspected issues were handled</h2></div></div>
         <div id="agent-trace" class="timeline"></div>
       </section>
 
       <section class="panel">
-        <div class="section-head">
-          <div>
-            <p class="eyebrow">TIMELINE</p>
-            <h2>Reviewable events</h2>
-          </div>
-        </div>
+        <div class="section-head"><div><p class="eyebrow">TIMELINE</p><h2>Reviewable events</h2></div></div>
         <div id="timeline" class="timeline"></div>
       </section>
 
       <section class="panel">
-        <div class="section-head">
-          <div>
-            <p class="eyebrow">EVIDENCE</p>
-            <h2>Representative issue cards</h2>
-          </div>
-        </div>
+        <div class="section-head"><div><p class="eyebrow">EVIDENCE</p><h2>Representative issue cards</h2></div></div>
         <div id="issue-cards" class="issue-grid"></div>
       </section>
     </section>
