@@ -3,7 +3,7 @@ from __future__ import annotations
 from pathlib import Path
 
 from app.agent.confirmation import apply_second_pass
-from app.evidence.builder import build_evidence_cards, build_timeline, severity_for_issue
+from app.evidence.builder import build_evidence_cards, build_timeline
 from app.vision.flicker_detection import detect_flicker_windows
 from app.vision.freeze_detection import detect_freeze_windows
 from app.vision.motion_analysis import analyze_motion
@@ -49,11 +49,7 @@ def _cluster_issues(issues: list[dict], *, merge_gap_seconds: float = 0.45) -> l
 
 
 def _final_verdict(result_a: dict, result_b: dict) -> dict:
-    all_issues = [
-        ("A", issue) for issue in result_a["issues"]
-    ] + [
-        ("B", issue) for issue in result_b["issues"]
-    ]
+    all_issues = [("A", issue) for issue in result_a["issues"]] + [("B", issue) for issue in result_b["issues"]]
 
     if not all_issues:
         return {
@@ -77,7 +73,7 @@ def _final_verdict(result_a: dict, result_b: dict) -> dict:
         return {
             "status": "FAIL",
             "action": "HUMAN_REVIEW",
-            "summary": f"{affected} contains one or more anomalies that survived second-pass confirmation. Review the representative evidence before acceptance.",
+            "summary": f"{affected} contains one or more anomalies that survived targeted second-pass confirmation.",
         }
 
     if review_only:
@@ -108,10 +104,7 @@ def analyze_video_first_pass(video_path: Path, *, video_label: str = "?") -> dic
             "start_time": item.start_time,
             "end_time": item.end_time,
             "confidence": item.confidence,
-            "details": {
-                "start_frame": item.start_frame,
-                "end_frame": item.end_frame,
-            },
+            "details": {"start_frame": item.start_frame, "end_frame": item.end_frame},
         })
 
     for item in motion_anomalies:
@@ -135,11 +128,7 @@ def analyze_video_first_pass(video_path: Path, *, video_label: str = "?") -> dic
             "start_time": item.start_time,
             "end_time": item.end_time,
             "confidence": min(1.0, item.score / 10.0),
-            "details": {
-                "start_frame": item.start_frame,
-                "end_frame": item.end_frame,
-                "score": item.score,
-            },
+            "details": {"start_frame": item.start_frame, "end_frame": item.end_frame, "score": item.score},
         })
 
     for item in scene_changes:
@@ -148,38 +137,32 @@ def analyze_video_first_pass(video_path: Path, *, video_label: str = "?") -> dic
             "start_time": item.time,
             "end_time": item.time,
             "confidence": min(1.0, item.score),
-            "details": {
-                "frame": item.frame,
-                "score": item.score,
-            },
+            "details": {"frame": item.frame, "score": item.score},
         })
 
     raw_issues.sort(key=lambda issue: (issue["start_time"], issue["type"]))
     clustered = _cluster_issues(raw_issues)
-    issues, trace = apply_second_pass(clustered, video_label=video_label)
+    issues, trace = apply_second_pass(clustered, video_label=video_label, video_path=video_path)
 
     return {
         "video": video_path.name,
         "raw_event_count": len(raw_issues),
         "issue_count": len(issues),
         "confirmed_issue_count": sum(1 for item in issues if item.get("confirmation", {}).get("confirmed")),
+        "review_issue_count": sum(1 for item in issues if item.get("confirmation", {}).get("status") == "review"),
         "issues": issues,
         "agent_trace": trace,
     }
 
 
-def compare_first_pass(
-    video_a: Path,
-    video_b: Path,
-    *,
-    evidence_root: Path | None = None,
-) -> dict:
+def compare_first_pass(video_a: Path, video_b: Path, *, evidence_root: Path | None = None) -> dict:
     result_a = analyze_video_first_pass(video_a, video_label="A")
     result_b = analyze_video_first_pass(video_b, video_label="B")
 
     total_issues = result_a["issue_count"] + result_b["issue_count"]
     total_raw_events = result_a["raw_event_count"] + result_b["raw_event_count"]
     total_confirmed = result_a["confirmed_issue_count"] + result_b["confirmed_issue_count"]
+    total_review = result_a["review_issue_count"] + result_b["review_issue_count"]
     verdict = _final_verdict(result_a, result_b)
 
     response = {
@@ -190,14 +173,24 @@ def compare_first_pass(
         "total_issues": total_issues,
         "total_raw_events": total_raw_events,
         "total_confirmed_issues": total_confirmed,
+        "total_review_issues": total_review,
         "agent_trace": result_a["agent_trace"] + result_b["agent_trace"],
     }
 
     if evidence_root is not None:
-        actionable_a = [issue for issue in result_a["issues"] if issue.get("confirmation", {}).get("status") != "context"]
-        actionable_b = [issue for issue in result_b["issues"] if issue.get("confirmation", {}).get("status") != "context"]
-        cards_a = build_evidence_cards(video_a, actionable_a, evidence_root, video_label="A")
-        cards_b = build_evidence_cards(video_b, actionable_b, evidence_root, video_label="B")
+        confirmed_a = [i for i in result_a["issues"] if i.get("confirmation", {}).get("confirmed")]
+        confirmed_b = [i for i in result_b["issues"] if i.get("confirmation", {}).get("confirmed")]
+
+        # If nothing is confirmed, show only a small review sample rather than dozens of cards.
+        if confirmed_a or confirmed_b:
+            display_a, display_b = confirmed_a, confirmed_b
+        else:
+            review_a = [i for i in result_a["issues"] if i.get("confirmation", {}).get("status") == "review"][:3]
+            review_b = [i for i in result_b["issues"] if i.get("confirmation", {}).get("status") == "review"][:3]
+            display_a, display_b = review_a, review_b
+
+        cards_a = build_evidence_cards(video_a, display_a, evidence_root, video_label="A")
+        cards_b = build_evidence_cards(video_b, display_b, evidence_root, video_label="B")
         cards = cards_a + cards_b
         response["evidence_cards"] = cards
         response["timeline"] = build_timeline(cards)
