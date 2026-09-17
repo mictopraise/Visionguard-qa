@@ -2,6 +2,7 @@ from __future__ import annotations
 
 from pathlib import Path
 
+from app.agent.confirmation import apply_second_pass
 from app.evidence.builder import build_evidence_cards, build_timeline, severity_for_issue
 from app.vision.flicker_detection import detect_flicker_windows
 from app.vision.freeze_detection import detect_freeze_windows
@@ -30,6 +31,11 @@ def _cluster_issues(issues: list[dict], *, merge_gap_seconds: float = 0.45) -> l
                 current["end_time"] = max(float(current["end_time"]), float(item["end_time"]))
                 current["confidence"] = max(float(current.get("confidence", 0.0)), float(item.get("confidence", 0.0)))
                 current["details"]["raw_event_count"] += 1
+                if "spike_ratio" in item.get("details", {}):
+                    current["details"]["max_spike_ratio"] = max(
+                        float(current["details"].get("max_spike_ratio", current["details"].get("spike_ratio", 0.0))),
+                        float(item["details"]["spike_ratio"]),
+                    )
             else:
                 clustered.append(current)
                 current = dict(item)
@@ -56,38 +62,39 @@ def _final_verdict(result_a: dict, result_b: dict) -> dict:
             "summary": "No significant visual anomalies were detected in either video.",
         }
 
-    severe = []
-    moderate = []
+    confirmed = []
+    review_only = []
     for video, issue in all_issues:
-        duration = max(0.0, float(issue["end_time"]) - float(issue["start_time"]))
-        severity = severity_for_issue(issue["type"], float(issue.get("confidence", 0.0)), duration)
-        record = (video, issue, severity)
-        if severity == "major":
-            severe.append(record)
-        elif severity == "moderate":
-            moderate.append(record)
+        state = issue.get("confirmation", {})
+        if state.get("confirmed"):
+            confirmed.append((video, issue))
+        elif state.get("status") == "review":
+            review_only.append((video, issue))
 
-    affected_videos = sorted({video for video, _, _ in severe + moderate})
-
-    if severe:
-        if len(affected_videos) == 1:
-            affected = f"Video {affected_videos[0]}"
-        else:
-            affected = "both videos"
+    if confirmed:
+        affected_videos = sorted({video for video, _ in confirmed})
+        affected = f"Video {affected_videos[0]}" if len(affected_videos) == 1 else "Both videos"
         return {
             "status": "FAIL",
             "action": "HUMAN_REVIEW",
-            "summary": f"{affected} contains significant visual anomalies. Review the grouped evidence before accepting the pair.",
+            "summary": f"{affected} contains one or more anomalies that survived second-pass confirmation. Review the representative evidence before acceptance.",
+        }
+
+    if review_only:
+        return {
+            "status": "REVIEW",
+            "action": "HUMAN_REVIEW",
+            "summary": "Potential anomalies were detected, but none met the stricter second-pass threshold for automatic failure.",
         }
 
     return {
-        "status": "REVIEW",
-        "action": "HUMAN_REVIEW",
-        "summary": "Only moderate or minor anomalies were detected. Human review is recommended before acceptance.",
+        "status": "PASS",
+        "action": "PASS",
+        "summary": "Only contextual scene changes were detected; no actionable visual defect was confirmed.",
     }
 
 
-def analyze_video_first_pass(video_path: Path) -> dict:
+def analyze_video_first_pass(video_path: Path, *, video_label: str = "?") -> dict:
     freeze_windows = detect_freeze_windows(video_path)
     _, motion_anomalies = analyze_motion(video_path)
     flicker_windows = detect_flicker_windows(video_path)
@@ -118,6 +125,7 @@ def analyze_video_first_pass(video_path: Path) -> dict:
                 "magnitude": item.magnitude,
                 "baseline": item.baseline,
                 "spike_ratio": item.spike_ratio,
+                "max_spike_ratio": item.spike_ratio,
             },
         })
 
@@ -147,13 +155,16 @@ def analyze_video_first_pass(video_path: Path) -> dict:
         })
 
     raw_issues.sort(key=lambda issue: (issue["start_time"], issue["type"]))
-    issues = _cluster_issues(raw_issues)
+    clustered = _cluster_issues(raw_issues)
+    issues, trace = apply_second_pass(clustered, video_label=video_label)
 
     return {
         "video": video_path.name,
         "raw_event_count": len(raw_issues),
         "issue_count": len(issues),
+        "confirmed_issue_count": sum(1 for item in issues if item.get("confirmation", {}).get("confirmed")),
         "issues": issues,
+        "agent_trace": trace,
     }
 
 
@@ -163,11 +174,12 @@ def compare_first_pass(
     *,
     evidence_root: Path | None = None,
 ) -> dict:
-    result_a = analyze_video_first_pass(video_a)
-    result_b = analyze_video_first_pass(video_b)
+    result_a = analyze_video_first_pass(video_a, video_label="A")
+    result_b = analyze_video_first_pass(video_b, video_label="B")
 
     total_issues = result_a["issue_count"] + result_b["issue_count"]
     total_raw_events = result_a["raw_event_count"] + result_b["raw_event_count"]
+    total_confirmed = result_a["confirmed_issue_count"] + result_b["confirmed_issue_count"]
     verdict = _final_verdict(result_a, result_b)
 
     response = {
@@ -177,21 +189,15 @@ def compare_first_pass(
         "video_b": result_b,
         "total_issues": total_issues,
         "total_raw_events": total_raw_events,
+        "total_confirmed_issues": total_confirmed,
+        "agent_trace": result_a["agent_trace"] + result_b["agent_trace"],
     }
 
     if evidence_root is not None:
-        cards_a = build_evidence_cards(
-            video_a,
-            result_a["issues"],
-            evidence_root,
-            video_label="A",
-        )
-        cards_b = build_evidence_cards(
-            video_b,
-            result_b["issues"],
-            evidence_root,
-            video_label="B",
-        )
+        actionable_a = [issue for issue in result_a["issues"] if issue.get("confirmation", {}).get("status") != "context"]
+        actionable_b = [issue for issue in result_b["issues"] if issue.get("confirmation", {}).get("status") != "context"]
+        cards_a = build_evidence_cards(video_a, actionable_a, evidence_root, video_label="A")
+        cards_b = build_evidence_cards(video_b, actionable_b, evidence_root, video_label="B")
         cards = cards_a + cards_b
         response["evidence_cards"] = cards
         response["timeline"] = build_timeline(cards)
