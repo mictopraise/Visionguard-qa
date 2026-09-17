@@ -6,6 +6,7 @@ from fastapi import APIRouter, File, HTTPException, UploadFile
 
 from app.core.config import settings
 from app.core.models import ComparisonJob
+from app.services.first_pass import compare_first_pass
 from app.video.probe import VideoProbeError, probe_video
 
 router = APIRouter(prefix="/compare", tags=["comparison"])
@@ -43,14 +44,22 @@ def create_comparison(
         path_b = _save_upload(video_b, job_dir, "video_b")
         meta_a = probe_video(path_a, video_a.filename)
         meta_b = probe_video(path_b, video_b.filename)
-    except (VideoProbeError, HTTPException):
+        analysis = compare_first_pass(path_a, path_b)
+    except HTTPException:
         shutil.rmtree(job_dir, ignore_errors=True)
         raise
+    except (VideoProbeError, ValueError) as exc:
+        shutil.rmtree(job_dir, ignore_errors=True)
+        raise HTTPException(status_code=422, detail=str(exc)) from exc
 
     return ComparisonJob(
         job_id=job_id,
         video_a=meta_a,
         video_b=meta_b,
-        status="INGESTED",
-        notes=["Foundation milestone: upload and OpenCV metadata probing complete."],
+        status="ANALYZED",
+        notes=[
+            f"First-pass OpenCV analysis complete. Disposition: {analysis['disposition']}.",
+            f"Detected {analysis['total_issues']} issue(s) across both videos.",
+        ],
+        evidence=[analysis],
     )
