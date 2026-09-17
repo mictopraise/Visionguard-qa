@@ -30,6 +30,21 @@ def _save_upload(upload: UploadFile, job_dir: Path, label: str) -> Path:
     return destination
 
 
+def _expose_evidence_urls(analysis: dict) -> dict:
+    result_root = settings.result_dir.resolve()
+    for card in analysis.get("evidence_cards", []):
+        urls: list[str] = []
+        for raw_path in card.get("evidence_frames", []):
+            frame_path = Path(raw_path).resolve()
+            try:
+                relative = frame_path.relative_to(result_root)
+            except ValueError:
+                continue
+            urls.append("/results/" + relative.as_posix())
+        card["evidence_frames"] = urls
+    return analysis
+
+
 @router.post("", response_model=ComparisonJob)
 def create_comparison(
     video_a: UploadFile = File(...),
@@ -46,6 +61,7 @@ def create_comparison(
         meta_a = probe_video(path_a, video_a.filename)
         meta_b = probe_video(path_b, video_b.filename)
         analysis = compare_first_pass(path_a, path_b, evidence_root=evidence_dir)
+        analysis = _expose_evidence_urls(analysis)
     except HTTPException:
         shutil.rmtree(job_dir, ignore_errors=True)
         raise
