@@ -53,6 +53,9 @@ jobs:
       - name: Run spatial calibration benchmark
         run: python -m benchmark.run_spatial_calibration
 
+      - name: Run Sage human calibration audit
+        run: python -m benchmark.run_sage_human_calibration
+
       - name: Upload benchmark reports
         if: always()
         uses: actions/upload-artifact@v4
