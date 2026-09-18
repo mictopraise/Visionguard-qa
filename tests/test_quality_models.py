@@ -28,3 +28,37 @@ def test_pairwise_preference_supports_same_and_inconclusive() -> None:
 
     assert same.preference == PairPreference.SAME
     assert uncertain.preference == PairPreference.INCONCLUSIVE
+
+
+from app.services.first_pass import _playback_quality_from_issues
+
+
+def test_playback_quality_reports_temporal_issues_for_confirmed_event() -> None:
+    issues = [{
+        "type": "motion_discontinuity",
+        "confidence": 0.98,
+        "confirmation": {"status": "confirmed", "confirmed": True},
+    }]
+    result = _playback_quality_from_issues(issues)
+    assert result["label"] == "temporal_issues"
+    assert "motion_discontinuity" in result["supporting_types"]
+
+
+def test_playback_quality_reports_uncertain_for_review_only_event() -> None:
+    issues = [{
+        "type": "flicker",
+        "confidence": 0.8,
+        "confirmation": {"status": "review", "confirmed": False},
+    }]
+    result = _playback_quality_from_issues(issues)
+    assert result["label"] == "uncertain"
+
+
+def test_playback_quality_ignores_scene_context() -> None:
+    issues = [{
+        "type": "scene_change",
+        "confidence": 0.9,
+        "confirmation": {"status": "context", "confirmed": False},
+    }]
+    result = _playback_quality_from_issues(issues)
+    assert result["label"] == "smooth"
