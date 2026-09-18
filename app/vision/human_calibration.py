@@ -5,7 +5,8 @@ from pathlib import Path
 from typing import Any
 
 
-DEFAULT_MANIFEST = Path("benchmark/sage_human_calibration_manifest.json")
+REPO_ROOT = Path(__file__).resolve().parents[2]
+DEFAULT_MANIFEST = REPO_ROOT / "benchmark" / "sage_human_calibration_manifest.json"
 
 
 def load_sage_manifest(path: Path = DEFAULT_MANIFEST) -> dict[str, Any]:
