@@ -1,0 +1,65 @@
+{
+  "source": "Super Resolution - Media Labeling Guidelines + Sage Clarifications and Updates",
+  "authority": "official_project_guidelines",
+  "rules": {
+    "independent_review_first": true,
+    "mos_scale": {
+      "1": "Bad",
+      "2": "Poor",
+      "3": "Fair",
+      "4": "Visible level of one artifact",
+      "5": "No perceivable quality issue"
+    },
+    "artifact_labels": [
+      "unnatural_objects",
+      "oversharpening",
+      "blurring",
+      "oversmooth",
+      "blocky",
+      "color_shift",
+      "other",
+      "no_artifacts"
+    ],
+    "playback_labels": ["smooth", "temporal_issues"],
+    "intentional_blur_is_not_artifact": true,
+    "buffering_is_not_temporal_issue": true,
+    "preference_should_match_ratings": true,
+    "slight_preference_is_encouraged": true,
+    "mos_distribution_note": "Most examples are expected around 2, 3, or 4; 1 and 5 are rarer."
+  },
+  "textual_gold_examples": [
+    {
+      "id": "sage-example-1",
+      "left": {"mos": [2, 3], "artifacts": ["blurring"], "playback": "smooth"},
+      "right": {"mos": [2, 3], "artifacts": ["blurring"], "playback": "smooth"},
+      "preference": "same",
+      "usable_for": ["artifact_schema", "playback_schema"],
+      "consistency": "ambiguous_mos_range"
+    },
+    {
+      "id": "sage-example-2",
+      "left": {"mos": 2, "artifacts": ["blurring"], "playback": "smooth"},
+      "right": {"mos": 3, "artifacts": ["oversmooth", "oversharpening"], "playback": "smooth"},
+      "preference": "right",
+      "usable_for": ["mos_preference_consistency", "artifact_schema", "playback_schema"],
+      "consistency": "consistent"
+    },
+    {
+      "id": "sage-example-3",
+      "left": {"mos": 4, "artifacts": ["oversmooth"], "playback": "smooth"},
+      "right": {"mos": 3, "artifacts": ["blurring"], "playback": "smooth"},
+      "preference": "left",
+      "usable_for": ["mos_preference_consistency", "artifact_schema", "playback_schema"],
+      "consistency": "consistent"
+    },
+    {
+      "id": "sage-example-4",
+      "left": {"mos": 4, "artifacts": [], "playback": "smooth"},
+      "right": {"mos": 5, "artifacts": [], "playback": "smooth"},
+      "preference": "left",
+      "usable_for": ["artifact_schema", "playback_schema"],
+      "consistency": "source_conflict",
+      "conflict_note": "Preference contradicts the stated rule that the higher MOS should be preferred. Preserve but exclude from automatic preference fitting."
+    }
+  ]
+}
