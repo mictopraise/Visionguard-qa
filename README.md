@@ -85,23 +85,23 @@ Implemented in the current Milestone 6 build:
 - independent spatial sampling per video
 - blur evidence using Laplacian detail energy
 - blockiness evidence using 8-pixel boundary discontinuity measurements
+- oversharpening/ringing evidence using high-frequency edge residual and overshoot measurements
+- oversmoothing/detail-loss evidence using fine-to-coarse texture energy
 - provisional candidate artifact output per video
 - UI display of spatial candidates separately from temporal verdicts
 - synthetic tests for blur sensitivity and block-boundary detection
 
-Important: blur and blockiness thresholds are **provisional calibration thresholds**, not final Sage labels. Candidate artifacts do not yet force MOS scores or final quality verdicts.
+Important: blur, blockiness, oversharpening, and oversmoothing thresholds are **provisional calibration thresholds**, not final Sage labels. Candidate artifacts do not yet force MOS scores or final quality verdicts.
 
 Remaining Milestone 6 work:
 
-1. calibrate blur and blockiness on controlled labeled examples
-2. oversharpening / ringing detector
-3. oversmoothing / detail-loss detector
-4. color-shift detector
-5. connect temporal QA to playback-quality output
-6. produce calibrated artifact labels per video
-7. calibrate MOS scoring
-8. produce pairwise preference consistent with both independent assessments
-9. surface final evidence and confidence in the UI
+1. calibrate blur, blockiness, oversharpening, and oversmoothing on controlled labeled examples
+2. color-shift detector
+3. connect temporal QA to playback-quality output
+4. produce calibrated artifact labels per video
+5. calibrate MOS scoring
+6. produce pairwise preference consistent with both independent assessments
+7. surface final evidence and confidence in the UI
 
 The frozen architecture is documented in `docs/SAGE_ALIGNED_ARCHITECTURE.md`.
 
@@ -173,7 +173,7 @@ pytest
 
 VisionGuard now follows independent quality evaluation first, synchronized comparison second.
 
-**Milestone 6: IN PROGRESS — blur + blockiness spatial evidence implemented; calibration pending.**
+**Milestone 6B: IN PROGRESS — blur, blockiness, oversharpening/ringing, and oversmoothing/detail-loss evidence implemented; calibration pending.**
 
 ## Competition
 
