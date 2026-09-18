@@ -1,0 +1,28 @@
+{
+  "schema_version": 1,
+  "description": "Template for manually labeled real-world VisionGuard calibration clips. Do not treat this example as ground truth.",
+  "clips": [
+    {
+      "id": "example-clean-001",
+      "path": "benchmark/real_world_clips/example-clean-001.mp4",
+      "artifacts": [],
+      "intentional_effects": [],
+      "playback": "smooth",
+      "mos": null,
+      "source": "manual",
+      "reviewer": null,
+      "notes": "Replace with a real labeled clip before running calibration."
+    },
+    {
+      "id": "example-intentional-blur-001",
+      "path": "benchmark/real_world_clips/example-intentional-blur-001.mp4",
+      "artifacts": [],
+      "intentional_effects": ["blur"],
+      "playback": "smooth",
+      "mos": null,
+      "source": "manual",
+      "reviewer": null,
+      "notes": "Negative example: intentional depth-of-field blur should not count as blurring."
+    }
+  ]
+}
