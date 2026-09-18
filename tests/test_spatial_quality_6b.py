@@ -46,4 +46,5 @@ def test_smoothing_reduces_fine_texture_ratio() -> None:
     candidate = measure_oversmoothing_frame(smoothed)
 
     assert candidate["fine_to_coarse_ratio"] < baseline["fine_to_coarse_ratio"]
-    assert candidate["textured_fraction"] <= baseline["textured_fraction"]
+    assert candidate["fine_energy"] < baseline["fine_energy"]
+    assert candidate["coarse_energy"] > 0.0
