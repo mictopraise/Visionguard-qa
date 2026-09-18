@@ -17,9 +17,9 @@ class ArtifactCalibration:
 ARTIFACT_CALIBRATION: dict[str, ArtifactCalibration] = {
     name: ArtifactCalibration(
         label=name,
-        status="synthetic_validation_pending",
+        status="synthetic_validated",
         source="benchmark/run_spatial_calibration.py",
-        notes="Final label promotion requires passing controlled benchmark evidence and later human/example calibration.",
+        notes="Synthetic directional benchmark passed; final label promotion still requires human/example-labeled calibration.",
     )
     for name in ("blurring", "blocky", "oversharpening", "oversmooth", "color_shift")
 }
