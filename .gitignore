@@ -8,3 +8,6 @@ __pycache__/
 data/
 uploads/
 results/
+
+# Local real-world calibration media (labels/manifests may be committed separately)
+benchmark/real_world_clips/
