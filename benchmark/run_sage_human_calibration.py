@@ -38,9 +38,9 @@ def run() -> dict:
             if statuses[example["id"]] == "ambiguous"
         ],
         "promotion_policy": {
-            "synthetic_validation_alone": false,
-            "textual_examples_alone": false,
-            "requires_real_labeled_media": true
+            "synthetic_validation_alone": False,
+            "textual_examples_alone": False,
+            "requires_real_labeled_media": True
         }
     }
 
