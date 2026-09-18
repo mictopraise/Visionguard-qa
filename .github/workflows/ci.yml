@@ -56,6 +56,9 @@ jobs:
       - name: Run Sage human calibration audit
         run: python -m benchmark.run_sage_human_calibration
 
+      - name: Run real-world calibration harness
+        run: python -m benchmark.run_real_world_calibration
+
       - name: Upload benchmark reports
         if: always()
         uses: actions/upload-artifact@v4
