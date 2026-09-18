@@ -180,10 +180,23 @@ pytest
 
 VisionGuard now follows independent quality evaluation first, synchronized comparison second.
 
-**Milestone 6E: IN PROGRESS — controlled spatial calibration benchmark and artifact-promotion guardrails implemented; CI verification pending.**
+**Milestone 6E: COMPLETE — controlled spatial calibration passed for all five signals; registry marks them synthetic-validated, while final artifact promotion remains blocked pending human/example-labeled calibration.**
 
 ## Competition
 
 OpenCV AI Competition 2026 powered by AWS
 
 Special Award target: Agentic Vision Award
+
+
+## Milestone 6E Synthetic Calibration Result
+
+CI run 35356430169 validated 12 clean/degraded pairs per spatial artifact signal.
+
+- Blur: clean median 2942.19 vs degraded 1.90; separation ratio 1547.71×
+- Blockiness: clean median 0.98 vs degraded 7.93; separation ratio 8.12×
+- Oversharpening: clean median 15.64 vs degraded 31.39; separation ratio 2.01×
+- Oversmoothing: clean median 0.744 vs degraded 0.584; separation ratio 1.27×
+- Color shift: clean median 6.08 vs degraded 42.56; separation ratio 7.00×
+
+All five signals moved in the expected direction. These results validate detector behavior on controlled synthetic degradations only; they do not establish human-level classification accuracy.
