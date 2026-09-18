@@ -43,6 +43,30 @@ function renderSpatial(targetId, spatial) {
   }
 }
 
+function renderQualityRecord(targetId, record) {
+  const target = document.getElementById(targetId);
+  const playback = record?.playback_quality || {};
+  const spatial = record?.spatial_candidates || [];
+  target.innerHTML = '';
+
+  const playbackNode = document.createElement('div');
+  playbackNode.className = 'timeline-item';
+  playbackNode.textContent = `Playback: ${String(playback.label || 'uncertain').replaceAll('_',' ').toUpperCase()} · ${playback.reason || 'No playback summary.'}`;
+  target.appendChild(playbackNode);
+
+  const mosNode = document.createElement('div');
+  mosNode.className = 'timeline-item';
+  mosNode.textContent = 'MOS: PENDING CALIBRATION';
+  target.appendChild(mosNode);
+
+  const artifactNode = document.createElement('div');
+  artifactNode.className = 'timeline-item';
+  artifactNode.textContent = spatial.length
+    ? `Spatial candidates: ${spatial.map(item => item.artifact.replaceAll('_',' ')).join(', ')}`
+    : 'Spatial candidates: none at provisional thresholds';
+  target.appendChild(artifactNode);
+}
+
 function renderResults(payload) {
   const analysis = payload.evidence?.[0] || {};
   const cards = analysis.evidence_cards || [];
@@ -68,6 +92,8 @@ function renderResults(payload) {
 
   renderSpatial('spatial-a', analysis.video_a?.spatial_quality || {});
   renderSpatial('spatial-b', analysis.video_b?.spatial_quality || {});
+  renderQualityRecord('quality-a', analysis.video_a?.quality_record || {});
+  renderQualityRecord('quality-b', analysis.video_b?.quality_record || {});
 
   if (comparative.summary) {
     const score = Number(alignment.score || 0);
