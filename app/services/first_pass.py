@@ -9,6 +9,7 @@ from app.vision.freeze_detection import detect_freeze_windows
 from app.vision.motion_analysis import analyze_motion
 from app.vision.pairwise_comparison import compare_aligned_videos
 from app.vision.scene_change import detect_scene_changes
+from app.vision.calibration import ARTIFACT_CALIBRATION, promotable_artifacts
 from app.vision.spatial_quality import analyze_spatial_quality
 
 
@@ -132,16 +133,25 @@ def _playback_quality_from_issues(issues: list[dict]) -> dict:
 
 def _quality_record(video_label: str, spatial: dict, issues: list[dict]) -> dict:
     playback = _playback_quality_from_issues(issues)
+    candidates = list(spatial.get("candidate_artifacts", []))
+    allowed = promotable_artifacts()
+    final_artifacts = [
+        item["artifact"] for item in candidates
+        if item.get("artifact") in allowed
+    ]
     return {
         "video_label": video_label,
         "mos_score": None,
-        "final_artifacts": [],
-        "spatial_candidates": list(spatial.get("candidate_artifacts", [])),
+        "final_artifacts": final_artifacts,
+        "spatial_candidates": candidates,
         "playback_quality": playback,
-        "calibration_status": "provisional",
+        "calibration_status": {
+            name: calibration.status
+            for name, calibration in ARTIFACT_CALIBRATION.items()
+        },
         "notes": [
             "MOS is withheld until benchmark calibration is complete.",
-            "Spatial findings are candidate evidence, not final artifact labels.",
+            "Only artifacts with calibrated registry status may appear as final labels.",
         ],
     }
 
