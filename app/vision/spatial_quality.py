@@ -120,8 +120,8 @@ def analyze_spatial_quality(
     blockiness_strength_threshold: float = 6.0,
     oversharpen_edge_threshold: float = 6.5,
     oversharpen_extreme_fraction_threshold: float = 0.08,
-    oversmooth_ratio_threshold: float = 0.32,
-    oversmooth_texture_fraction_threshold: float = 0.18,
+    oversmooth_ratio_threshold: float = 0.25,
+    oversmooth_coarse_energy_threshold: float = 4.0,
 ) -> dict:
     """Sample a video for provisional spatial-quality evidence.
 
@@ -147,6 +147,7 @@ def analyze_spatial_quality(
     sharpen_extreme_fractions: list[float] = []
     smooth_ratios: list[float] = []
     texture_fractions: list[float] = []
+    coarse_energies: list[float] = []
 
     t = 0.0
     while t <= duration:
@@ -169,6 +170,7 @@ def analyze_spatial_quality(
         smooth = measure_oversmoothing_frame(frame)
         smooth_ratios.append(float(smooth["fine_to_coarse_ratio"]))
         texture_fractions.append(float(smooth["textured_fraction"]))
+        coarse_energies.append(float(smooth["coarse_energy"]))
 
         t += sample_interval_seconds
     cap.release()
@@ -183,6 +185,7 @@ def analyze_spatial_quality(
     sharpen_extreme_arr = np.asarray(sharpen_extreme_fractions, dtype=np.float32)
     smooth_ratio_arr = np.asarray(smooth_ratios, dtype=np.float32)
     texture_arr = np.asarray(texture_fractions, dtype=np.float32)
+    coarse_energy_arr = np.asarray(coarse_energies, dtype=np.float32)
 
     blur_median = float(np.median(blur_arr))
     blur_low_fraction = float(np.mean(blur_arr < blur_candidate_threshold))
@@ -205,10 +208,11 @@ def analyze_spatial_quality(
 
     smooth_ratio_median = float(np.median(smooth_ratio_arr))
     texture_median = float(np.median(texture_arr))
+    coarse_energy_median = float(np.median(coarse_energy_arr))
     smooth_low_fraction = float(
         np.mean(
             (smooth_ratio_arr <= oversmooth_ratio_threshold)
-            & (texture_arr <= oversmooth_texture_fraction_threshold)
+            & (coarse_energy_arr >= oversmooth_coarse_energy_threshold)
         )
     )
 
@@ -261,13 +265,14 @@ def analyze_spatial_quality(
             "artifact": "oversmooth",
             "status": "candidate",
             "confidence": min(0.95, 0.45 + 0.5 * smooth_low_fraction),
-            "reason": "Fine texture energy remained weak relative to coarse structure across sampled frames; this is provisional evidence for oversmoothing/detail loss.",
+            "reason": "Fine texture energy remained weak relative to retained coarse structure across sampled frames; this is provisional evidence for oversmoothing/detail loss.",
             "metrics": {
                 "median_fine_to_coarse_ratio": smooth_ratio_median,
+                "median_coarse_energy": coarse_energy_median,
                 "median_textured_fraction": texture_median,
                 "low_texture_fraction": smooth_low_fraction,
                 "ratio_threshold": oversmooth_ratio_threshold,
-                "texture_fraction_threshold": oversmooth_texture_fraction_threshold,
+                "coarse_energy_threshold": oversmooth_coarse_energy_threshold,
             },
         })
 
