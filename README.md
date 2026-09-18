@@ -182,7 +182,9 @@ VisionGuard now follows independent quality evaluation first, synchronized compa
 
 **Milestone 6E: COMPLETE — controlled spatial calibration passed for all five signals.**
 
-**Milestone 6F: IN PROGRESS — official Sage rules/examples are encoded as a source-grounded calibration manifest with preference-consistency auditing. Final artifact promotion remains blocked until real labeled media are available.**
+**Milestone 6F: COMPLETE — official Sage rules/examples are encoded as a source-grounded calibration manifest with preference-consistency auditing.**
+
+**Milestone 6G: IN PROGRESS — real-world calibration manifest, metric extraction, threshold fitting, F1/FPR evaluation, and artifact-promotion criteria are implemented. Real human-labeled clips are still required before any detector is promoted.**
 
 ## Competition
 
@@ -219,3 +221,29 @@ The official Sage material is treated as authoritative for terminology and workf
 One supplied textual example contains an internal conflict: Left MOS 4, Right MOS 5, but preference is recorded as Left. VisionGuard preserves the source as written, flags it as a source conflict, and excludes it from automatic preference fitting rather than silently correcting it.
 
 Textual examples are sufficient for schema/rule calibration, but not for detector threshold promotion because the linked example media are not locally available as labeled clips.
+
+
+## Milestone 6G Real-World Calibration Harness
+
+The repository now supports a manually labeled real-video dataset without inventing labels.
+
+Dataset schema records:
+- clip path and stable ID
+- human artifact labels
+- intentional visual effects used as hard negatives
+- playback label
+- optional MOS
+- reviewer/source notes
+
+For each supported spatial artifact, VisionGuard can fit a threshold and report:
+- precision
+- recall
+- F1
+- false-positive rate
+- TP / FP / TN / FN
+- positive/negative sample counts
+- intentional-negative count
+
+Promotion is blocked unless a detector has at least 5 positive clips, 5 negative clips, 2 intentional-effect negatives, precision ≥ 0.80, recall ≥ 0.75, F1 ≥ 0.80, and false-positive rate ≤ 0.20.
+
+CI runs the harness safely. If `benchmark/real_world_calibration_manifest.json` is absent, the report states `awaiting_real_labeled_media`; it does not substitute synthetic data for human labels.
