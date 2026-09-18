@@ -94,13 +94,21 @@ Implemented in the current Milestone 6 build:
 
 Important: blur, blockiness, oversharpening, oversmoothing, and color-shift thresholds are **provisional calibration thresholds**, not final Sage labels. Candidate artifacts do not yet force MOS scores or final quality verdicts.
 
+Milestone 6E now adds:
+- a controlled synthetic calibration benchmark for all five implemented spatial signals
+- 12 clean/degraded sample pairs per artifact class
+- directional separation reporting for each signal
+- a calibration registry that blocks final artifact labels until promotion criteria are met
+- CI execution and report export for spatial calibration
+
 Remaining Milestone 6 work:
 
-1. calibrate the five implemented spatial signals on controlled labeled examples
-2. produce calibrated artifact labels per video
-3. calibrate MOS scoring
-4. produce pairwise preference consistent with both independent assessments
-5. surface final evidence and confidence in the UI
+1. inspect and freeze benchmark-backed thresholds
+2. validate against human/example-labeled clips, not synthetic data alone
+3. promote reliable candidates into final artifact labels
+4. calibrate MOS scoring
+5. produce pairwise preference consistent with both independent assessments
+6. surface final evidence and confidence in the UI
 
 The frozen architecture is documented in `docs/SAGE_ALIGNED_ARCHITECTURE.md`.
 
@@ -172,7 +180,7 @@ pytest
 
 VisionGuard now follows independent quality evaluation first, synchronized comparison second.
 
-**Milestone 6D: IN PROGRESS — playback quality is integrated into a per-video human-aligned quality record; MOS and final artifact labels remain calibration-pending.**
+**Milestone 6E: IN PROGRESS — controlled spatial calibration benchmark and artifact-promotion guardrails implemented; CI verification pending.**
 
 ## Competition
 
