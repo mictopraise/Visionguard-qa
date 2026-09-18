@@ -90,6 +90,62 @@ def _final_verdict(result_a: dict, result_b: dict, comparative: dict | None = No
     return {"status": "PASS", "action": "PASS", "summary": "Only contextual scene changes were detected; no actionable visual defect was confirmed."}
 
 
+def _playback_quality_from_issues(issues: list[dict]) -> dict:
+    """Map confirmed/reviewed temporal evidence to the human-facing playback result."""
+    actionable_types = {"freeze", "motion_discontinuity", "flicker"}
+    confirmed = [
+        issue for issue in issues
+        if issue.get("type") in actionable_types
+        and issue.get("confirmation", {}).get("confirmed")
+    ]
+    review = [
+        issue for issue in issues
+        if issue.get("type") in actionable_types
+        and issue.get("confirmation", {}).get("status") == "review"
+    ]
+
+    if confirmed:
+        confidence = max(float(item.get("confidence", 0.0)) for item in confirmed)
+        return {
+            "label": "temporal_issues",
+            "confidence": confidence,
+            "reason": f"{len(confirmed)} temporal issue(s) survived confirmation.",
+            "supporting_types": sorted({item["type"] for item in confirmed}),
+        }
+
+    if review:
+        confidence = max(float(item.get("confidence", 0.0)) for item in review)
+        return {
+            "label": "uncertain",
+            "confidence": confidence,
+            "reason": f"{len(review)} temporal candidate(s) remain unresolved after confirmation.",
+            "supporting_types": sorted({item["type"] for item in review}),
+        }
+
+    return {
+        "label": "smooth",
+        "confidence": 0.85,
+        "reason": "No confirmed or unresolved playback irregularity remained after temporal QA.",
+        "supporting_types": [],
+    }
+
+
+def _quality_record(video_label: str, spatial: dict, issues: list[dict]) -> dict:
+    playback = _playback_quality_from_issues(issues)
+    return {
+        "video_label": video_label,
+        "mos_score": None,
+        "final_artifacts": [],
+        "spatial_candidates": list(spatial.get("candidate_artifacts", [])),
+        "playback_quality": playback,
+        "calibration_status": "provisional",
+        "notes": [
+            "MOS is withheld until benchmark calibration is complete.",
+            "Spatial findings are candidate evidence, not final artifact labels.",
+        ],
+    }
+
+
 def analyze_video_first_pass(video_path: Path, *, video_label: str = "?") -> dict:
     freeze_windows = detect_freeze_windows(video_path)
     _, motion_anomalies = analyze_motion(video_path)
@@ -110,6 +166,7 @@ def analyze_video_first_pass(video_path: Path, *, video_label: str = "?") -> dic
     raw_issues.sort(key=lambda issue: (issue["start_time"], issue["type"]))
     clustered = _cluster_issues(raw_issues)
     issues, trace = apply_second_pass(clustered, video_label=video_label, video_path=video_path)
+    quality_record = _quality_record(video_label, spatial, issues)
     return {
         "video": video_path.name,
         "raw_event_count": len(raw_issues),
@@ -118,6 +175,7 @@ def analyze_video_first_pass(video_path: Path, *, video_label: str = "?") -> dic
         "review_issue_count": sum(1 for item in issues if item.get("confirmation", {}).get("status") == "review"),
         "issues": issues,
         "spatial_quality": spatial,
+        "quality_record": quality_record,
         "agent_trace": trace,
     }
 
