@@ -180,7 +180,9 @@ pytest
 
 VisionGuard now follows independent quality evaluation first, synchronized comparison second.
 
-**Milestone 6E: COMPLETE — controlled spatial calibration passed for all five signals; registry marks them synthetic-validated, while final artifact promotion remains blocked pending human/example-labeled calibration.**
+**Milestone 6E: COMPLETE — controlled spatial calibration passed for all five signals.**
+
+**Milestone 6F: IN PROGRESS — official Sage rules/examples are encoded as a source-grounded calibration manifest with preference-consistency auditing. Final artifact promotion remains blocked until real labeled media are available.**
 
 ## Competition
 
@@ -200,3 +202,20 @@ CI run 35356430169 validated 12 clean/degraded pairs per spatial artifact signal
 - Color shift: clean median 6.08 vs degraded 42.56; separation ratio 7.00×
 
 All five signals moved in the expected direction. These results validate detector behavior on controlled synthetic degradations only; they do not establish human-level classification accuracy.
+
+
+## Milestone 6F Human/Example Calibration Guardrails
+
+The official Sage material is treated as authoritative for terminology and workflow.
+
+- Videos are reviewed independently before pairwise preference.
+- Intentional blur is not labeled as blurring.
+- Buffering is not a temporal issue.
+- Preference should be consistent with MOS ratings.
+- Slight preference is encouraged when quality or playback differs.
+- Most MOS examples are expected around 2–4; MOS 1 and 5 are rarer.
+- Textual examples are audited before use as calibration gold.
+
+One supplied textual example contains an internal conflict: Left MOS 4, Right MOS 5, but preference is recorded as Left. VisionGuard preserves the source as written, flags it as a source conflict, and excludes it from automatic preference fitting rather than silently correcting it.
+
+Textual examples are sufficient for schema/rule calibration, but not for detector threshold promotion because the linked example media are not locally available as labeled clips.
