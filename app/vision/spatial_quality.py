@@ -111,6 +111,39 @@ def measure_oversmoothing_frame(frame: np.ndarray) -> dict:
     }
 
 
+
+def measure_color_shift_frame(frame: np.ndarray) -> dict:
+    """Measure persistent chroma bias in CIELAB space.
+
+    This is a low-level color-balance signal only. Strong intentional grading can
+    produce the same measurement, so final color-shift labels require calibration
+    and pairwise/contextual evidence.
+    """
+    lab = cv2.cvtColor(frame, cv2.COLOR_BGR2LAB).astype(np.float32)
+    if lab.shape[1] > 640:
+        scale = 640.0 / lab.shape[1]
+        lab = cv2.resize(
+            lab,
+            (640, max(2, int(round(lab.shape[0] * scale)))),
+            interpolation=cv2.INTER_AREA,
+        )
+
+    a = lab[..., 1] - 128.0
+    b = lab[..., 2] - 128.0
+    mean_a = float(np.mean(a))
+    mean_b = float(np.mean(b))
+    chroma_bias = float(np.hypot(mean_a, mean_b))
+    chroma_spread = float(np.mean(np.hypot(a - mean_a, b - mean_b)))
+    saturation = float(np.mean(np.hypot(a, b)))
+
+    return {
+        "mean_a": mean_a,
+        "mean_b": mean_b,
+        "chroma_bias": chroma_bias,
+        "chroma_spread": chroma_spread,
+        "mean_chroma": saturation,
+    }
+
 def analyze_spatial_quality(
     video_path: Path,
     *,
@@ -122,6 +155,8 @@ def analyze_spatial_quality(
     oversharpen_extreme_fraction_threshold: float = 0.08,
     oversmooth_ratio_threshold: float = 0.25,
     oversmooth_coarse_energy_threshold: float = 4.0,
+    color_bias_threshold: float = 18.0,
+    color_bias_fraction_threshold: float = 0.50,
 ) -> dict:
     """Sample a video for provisional spatial-quality evidence.
 
@@ -148,6 +183,9 @@ def analyze_spatial_quality(
     smooth_ratios: list[float] = []
     texture_fractions: list[float] = []
     coarse_energies: list[float] = []
+    color_bias_values: list[float] = []
+    color_mean_a: list[float] = []
+    color_mean_b: list[float] = []
 
     t = 0.0
     while t <= duration:
@@ -172,6 +210,11 @@ def analyze_spatial_quality(
         texture_fractions.append(float(smooth["textured_fraction"]))
         coarse_energies.append(float(smooth["coarse_energy"]))
 
+        color = measure_color_shift_frame(frame)
+        color_bias_values.append(float(color["chroma_bias"]))
+        color_mean_a.append(float(color["mean_a"]))
+        color_mean_b.append(float(color["mean_b"]))
+
         t += sample_interval_seconds
     cap.release()
 
@@ -186,6 +229,9 @@ def analyze_spatial_quality(
     smooth_ratio_arr = np.asarray(smooth_ratios, dtype=np.float32)
     texture_arr = np.asarray(texture_fractions, dtype=np.float32)
     coarse_energy_arr = np.asarray(coarse_energies, dtype=np.float32)
+    color_bias_arr = np.asarray(color_bias_values, dtype=np.float32)
+    color_a_arr = np.asarray(color_mean_a, dtype=np.float32)
+    color_b_arr = np.asarray(color_mean_b, dtype=np.float32)
 
     blur_median = float(np.median(blur_arr))
     blur_low_fraction = float(np.mean(blur_arr < blur_candidate_threshold))
@@ -215,6 +261,11 @@ def analyze_spatial_quality(
             & (coarse_energy_arr >= oversmooth_coarse_energy_threshold)
         )
     )
+
+    color_bias_median = float(np.median(color_bias_arr))
+    color_bias_fraction = float(np.mean(color_bias_arr >= color_bias_threshold))
+    color_a_median = float(np.median(color_a_arr))
+    color_b_median = float(np.median(color_b_arr))
 
     candidates: list[dict] = []
 
@@ -276,6 +327,21 @@ def analyze_spatial_quality(
             },
         })
 
+    if color_bias_fraction >= color_bias_fraction_threshold:
+        candidates.append({
+            "artifact": "color_shift",
+            "status": "candidate",
+            "confidence": min(0.90, 0.40 + 0.45 * color_bias_fraction),
+            "reason": "A persistent CIELAB chroma bias was present across sampled frames. This may indicate a color shift, but intentional color grading can produce the same signal and must be resolved during calibration/context review.",
+            "metrics": {
+                "median_chroma_bias": color_bias_median,
+                "median_a_bias": color_a_median,
+                "median_b_bias": color_b_median,
+                "high_color_bias_fraction": color_bias_fraction,
+                "bias_threshold": color_bias_threshold,
+            },
+        })
+
     return {
         "sample_count": len(times),
         "candidate_artifacts": candidates,
@@ -288,6 +354,10 @@ def analyze_spatial_quality(
             "oversharpen_high_fraction": sharpen_high_fraction,
             "median_fine_to_coarse_ratio": smooth_ratio_median,
             "oversmooth_low_texture_fraction": smooth_low_fraction,
+            "median_color_bias": color_bias_median,
+            "color_bias_high_fraction": color_bias_fraction,
+            "median_color_a_bias": color_a_median,
+            "median_color_b_bias": color_b_median,
         },
         "calibration_status": "provisional",
     }
