@@ -50,6 +50,9 @@ jobs:
       - name: Run motion benchmark
         run: python -m benchmark.run_motion_benchmark
 
+      - name: Run spatial calibration benchmark
+        run: python -m benchmark.run_spatial_calibration
+
       - name: Upload benchmark reports
         if: always()
         uses: actions/upload-artifact@v4
