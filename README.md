@@ -97,11 +97,10 @@ Important: blur, blockiness, oversharpening, oversmoothing, and color-shift thre
 Remaining Milestone 6 work:
 
 1. calibrate the five implemented spatial signals on controlled labeled examples
-2. connect temporal QA to playback-quality output
-3. produce calibrated artifact labels per video
-4. calibrate MOS scoring
-5. produce pairwise preference consistent with both independent assessments
-6. surface final evidence and confidence in the UI
+2. produce calibrated artifact labels per video
+3. calibrate MOS scoring
+4. produce pairwise preference consistent with both independent assessments
+5. surface final evidence and confidence in the UI
 
 The frozen architecture is documented in `docs/SAGE_ALIGNED_ARCHITECTURE.md`.
 
@@ -173,7 +172,7 @@ pytest
 
 VisionGuard now follows independent quality evaluation first, synchronized comparison second.
 
-**Milestone 6C: IN PROGRESS — blur, blockiness, oversharpening/ringing, oversmoothing/detail-loss, and color-shift evidence implemented; calibration pending.**
+**Milestone 6D: IN PROGRESS — playback quality is integrated into a per-video human-aligned quality record; MOS and final artifact labels remain calibration-pending.**
 
 ## Competition
 
