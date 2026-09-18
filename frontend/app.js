@@ -29,7 +29,7 @@ function renderSpatial(targetId, spatial) {
   if (!candidates.length) {
     const node = document.createElement('div');
     node.className = 'timeline-item';
-    node.textContent = `No blur/blockiness candidate at provisional thresholds · blur=${Number(metrics.median_laplacian_variance || 0).toFixed(1)} · block ratio=${Number(metrics.median_blockiness_ratio || 0).toFixed(2)}`;
+    node.textContent = `No spatial candidate at provisional thresholds · blur=${Number(metrics.median_laplacian_variance || 0).toFixed(1)} · block ratio=${Number(metrics.median_blockiness_ratio || 0).toFixed(2)}`;
     target.appendChild(node);
     return;
   }
